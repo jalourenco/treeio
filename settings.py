@@ -13,7 +13,9 @@ from os import path
 # assuming settings are in the same dir as source
 PROJECT_ROOT = path.abspath(path.dirname(__file__))
 
-DEBUG = True
+import os
+DEBUG = (True if 'DEBUG' not in os.environ 
+              else {'true': True, 'false': False}[os.environ['DEBUG'].lower()])
 TEMPLATE_DEBUG = DEBUG
 
 QUERY_DEBUG = False
@@ -25,8 +27,28 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-from core.db import DatabaseDict
-DATABASES = DatabaseDict()
+import dj_database_url
+
+# Backward compatible with treeio.core.db.
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3', 
+        'TEST_MIRROR': None, 
+        'NAME': 'treeio.db', 
+        'TEST_CHARSET': None, 
+        'TIME_ZONE': 'UTC0', 
+        'TEST_COLLATION': None, 
+        'PORT': '', 
+        'HOST': '', 
+        'USER': '', 
+        'TEST_NAME': None, 
+        'PASSWORD': '', 
+        'OPTIONS': {},
+    }
+}
+
+DATABASES['default'].update(
+    dj_database_url.config(default='sqlite:///treeio.db'))
 
 import sys
 # Covers regular testing and django-coverage
@@ -568,3 +590,12 @@ MESSAGE_STORAGE = 'treeio.core.contrib.messages.storage.cache.CacheStorage'
 
 # Dajaxice settings
 DAJAXICE_MEDIA_PREFIX = "dajaxice"
+
+if not DEBUG:
+    
+    # Please add your domain name here, detail see: 
+    # https://docs.djangoproject.com/en/dev/releases/1.5/#allowed-hosts-required-in-production
+    ALLOWED_HOSTS = [
+        'localhost', 
+        '127.0.0.1',
+    ] # and FQDN here...
